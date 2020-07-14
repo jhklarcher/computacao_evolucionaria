@@ -71,7 +71,7 @@ toolbox.register("select", tools.selTournament, tournsize=3)
 #%%
 
 def main():
-    pop = toolbox.population(n=300)
+    pop = toolbox.population(n=500)
     
     # Evaluate the entire population
     fitnesses = list(map(toolbox.evaluate, pop))
@@ -91,7 +91,7 @@ def main():
     g = 0
     stats = []
     # Begin the evolution
-    while g < 500:
+    while g < 1000:
         # A new generation
         g = g + 1
         # print("-- Generation %i --" % g)
@@ -139,3 +139,10 @@ def main():
 best_solution = main()
 print(evaluate(best_solution[0]))
 print(np.asmatrix(best_solution[0]).reshape(3, 4))
+
+
+# %%
+import matplotlib.pyplot as plt
+
+plt.plot(best_solution[1])
+plt.show()
