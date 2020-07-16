@@ -138,3 +138,5 @@ print("Volume: {}".format(vol))
 print("Tempo de produção: {}".format(tempo))
 print("Garrafas de leite: {}".format(n_leite))
 print("Lucro: {}".format(lucro))
+
+# %%

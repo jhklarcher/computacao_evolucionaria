@@ -1,14 +1,15 @@
-#%%
-# Imports
+# %%capture
+#!pip install deap
 import pandas as pd
 import numpy as np
 import random
+
 from deap import base
 from deap import creator
 from deap import tools
+random.seed(42)
 
 #%%
-# Cargas possíveis
 div = 10000
 
 cargas = [
@@ -25,34 +26,28 @@ compartimentos = [
     ]
 
 #%%
-# Iniciador de nº de cada carga
 def n_por_carga():
-    return random.choices(range(0, 40), k = 12)
+    return random.choices( range(0, 10000), k = 12)
 
-# Função de fitness
+#%%
 def evaluate(individual):
     individual = individual[0]
-
-    # Peso em cada compartimento
+    
     peso1 = individual[0] * cargas[0][1] + individual[1] * cargas[1][1] + individual[2] * cargas[2][1]+ individual[3] * cargas[3][1]
     peso2 = individual[4] * cargas[0][1] + individual[5] * cargas[1][1] + individual[6] * cargas[2][1]+ individual[7] * cargas[3][1]
     peso3 = individual[8] * cargas[0][1] + individual[9] * cargas[1][1] + individual[10] * cargas[2][1]+ individual[11] * cargas[3][1]
     
-    # Volume em cada compartimento 
-    vol1 = individual[0] * cargas[0][2] * cargas[0][1] / 1000 + individual[1] * cargas[1][2] * cargas[1][1] / 1000 + individual[2] * cargas[2][2] * cargas[2][1] / 1000 + individual[3] * cargas[3][2] * cargas[3][1] / 1000
-    vol2 = individual[4] * cargas[0][2] * cargas[0][1] / 1000 + individual[5] * cargas[1][2] * cargas[1][1] / 1000 + individual[6] * cargas[2][2] * cargas[2][1] / 1000 + individual[7] * cargas[3][2] * cargas[3][1] / 1000
-    vol3 = individual[8] * cargas[0][2] * cargas[0][1] / 1000 + individual[9] * cargas[1][2] * cargas[1][1] / 1000 + individual[10] * cargas[2][2] * cargas[2][1] / 1000 + individual[11] * cargas[3][2] * cargas[3][1] / 1000
+    vol1 = individual[0] * cargas[0][2] * cargas[0][1] + individual[1] * cargas[1][2] * cargas[1][1] + individual[2] * cargas[2][2] * cargas[2][1] + individual[3] * cargas[3][2] * cargas[3][1]
+    vol2 = individual[4] * cargas[0][2] * cargas[0][1] + individual[5] * cargas[1][2] * cargas[1][1] + individual[6] * cargas[2][2] * cargas[2][1] + individual[7] * cargas[3][2] * cargas[3][1]
+    vol3 = individual[8] * cargas[0][2] * cargas[0][1] + individual[9] * cargas[1][2] * cargas[1][1] + individual[10] * cargas[2][2] * cargas[2][1] + individual[11] * cargas[3][2] * cargas[3][1]
     
-    # Lucro por compartimento
     lucro1 = individual[0] * cargas[0][3] * cargas[0][1] + individual[1] * cargas[1][3] * cargas[1][1] + individual[2] * cargas[2][3] * cargas[2][1] + individual[3] * cargas[3][3] * cargas[3][1]
     lucro2 = individual[4] * cargas[0][3] * cargas[0][1] + individual[5] * cargas[1][3] * cargas[1][1] + individual[6] * cargas[2][3] * cargas[2][1] + individual[7] * cargas[3][3] * cargas[3][1]
     lucro3 = individual[8] * cargas[0][3] * cargas[0][1] + individual[9] * cargas[1][3] * cargas[1][1] + individual[10] * cargas[2][3] * cargas[2][1] + individual[11] * cargas[3][3] * cargas[3][1]
 
-    # Limites
-    if((peso1 > compartimentos[0][1]) or (peso2 > compartimentos[1][1]) or (peso3 > compartimentos[2][1]) or (vol1 > compartimentos[0][2]) or (vol2 > compartimentos[1][2]) or (vol3 > compartimentos[2][2])):
-        return 0.0,
+    if(peso1 > compartimentos[0][1] or peso2 > compartimentos[1][1] or peso3 > compartimentos[2][1] or vol1 > compartimentos[0][2] or vol2 > compartimentos[1][2] or vol3 > compartimentos[2][2]):
+        return 0.0, 99999999.9
 
-    # Lucro total (vai ser maximizado)
     lucro =  lucro1 + lucro2 + lucro3
 
     return lucro,
@@ -66,13 +61,12 @@ toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.n_p
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 toolbox.register("evaluate", evaluate)
 toolbox.register("mate", tools.cxTwoPoint)
-toolbox.register("mutate", tools.mutFlipBit, indpb=0.05)
+toolbox.register("mutate", tools.mutShuffleIndexes, indpb=0.05)
 toolbox.register("select", tools.selTournament, tournsize=3)
 
 #%%
-
 def main():
-    pop = toolbox.population(n=500)
+    pop = toolbox.population(n=300)
     
     # Evaluate the entire population
     fitnesses = list(map(toolbox.evaluate, pop))
@@ -90,9 +84,9 @@ def main():
     
     # Variable keeping track of the number of generations
     g = 0
-    stats = []
+    stats = []    
     # Begin the evolution
-    while g < 1000:
+    while g < 500:
         # A new generation
         g = g + 1
         # print("-- Generation %i --" % g)
@@ -135,15 +129,40 @@ def main():
     best = pop[np.argmax([toolbox.evaluate(x) for x in pop])]
     return best, stats
 
-
 #%%
 best_solution = main()
 print(evaluate(best_solution[0]))
 print(np.asmatrix(best_solution[0]).reshape(3, 4))
 
+#%%
+ans = []
+individual = best_solution[0][0]
 
-# %%
-import matplotlib.pyplot as plt
+peso1 = ["peso1", individual[0] * cargas[0][1], individual[1] * cargas[1][1], individual[2] * cargas[2][1], individual[3] * cargas[3][1]]
+peso2 = ["peso2", individual[4] * cargas[0][1], individual[5] * cargas[1][1], individual[6] * cargas[2][1], individual[7] * cargas[3][1]]
+peso3 = ["peso3", individual[8] * cargas[0][1], individual[9] * cargas[1][1], individual[10] * cargas[2][1], individual[11] * cargas[3][1]]
+    
+vol1 = ["vol1", individual[0] * cargas[0][2] * cargas[0][1], individual[1] * cargas[1][2] * cargas[1][1], individual[2] * cargas[2][2] * cargas[2][1], individual[3] * cargas[3][2] * cargas[3][1]]
+vol2 = ["vol2", individual[4] * cargas[0][2] * cargas[0][1], individual[5] * cargas[1][2] * cargas[1][1], individual[6] * cargas[2][2] * cargas[2][1], individual[7] * cargas[3][2] * cargas[3][1]]
+vol3 = ["vol3", individual[8] * cargas[0][2] * cargas[0][1], individual[9] * cargas[1][2] * cargas[1][1], individual[10] * cargas[2][2] * cargas[2][1], individual[11] * cargas[3][2] * cargas[3][1]]
+    
+lucro1 = ["lucro1", individual[0] * cargas[0][3] * cargas[0][1], individual[1] * cargas[1][3] * cargas[1][1], individual[2] * cargas[2][3] * cargas[2][1], individual[3] * cargas[3][3] * cargas[3][1]]
+lucro2 = ["lucro2", individual[4] * cargas[0][3] * cargas[0][1], individual[5] * cargas[1][3] * cargas[1][1], individual[6] * cargas[2][3] * cargas[2][1], individual[7] * cargas[3][3] * cargas[3][1]]
+lucro3 = ["lucro3", individual[8] * cargas[0][3] * cargas[0][1], individual[9] * cargas[1][3] * cargas[1][1], individual[10] * cargas[2][3] * cargas[2][1], individual[11] * cargas[3][3] * cargas[3][1]]
 
-plt.plot(best_solution[1])
-plt.show()
+ans.append(peso1)
+ans.append(peso2)
+ans.append(peso3)
+ans.append(vol1)
+ans.append(vol2)
+ans.append(vol3)
+ans.append(lucro1)
+ans.append(lucro2)
+ans.append(lucro3)
+
+ans = pd.DataFrame(ans, columns=["tipo", "carga1", "carga2", "carga3", "carga4"])
+ans.index = ans["tipo"]
+ans = ans.drop(["tipo"], axis = 1)
+ans["total"] = ans.sum(axis = 1)
+
+ans
