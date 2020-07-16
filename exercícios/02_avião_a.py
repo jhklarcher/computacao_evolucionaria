@@ -77,7 +77,7 @@ def main():
     #       are crossed
 
     # MUTPB is the probability for mutating an individual
-    CXPB, MUTPB = 0.9, 0.2
+    CXPB, MUTPB = 0.5, 0.1
     
     # Extracting all the fitnesses of 
     fits = [ind.fitness.values[0] for ind in pop]
@@ -86,7 +86,7 @@ def main():
     g = 0
     stats = []    
     # Begin the evolution
-    while g < 500:
+    while g < 600:
         # A new generation
         g = g + 1
         # print("-- Generation %i --" % g)
