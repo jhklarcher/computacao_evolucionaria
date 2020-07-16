@@ -173,4 +173,4 @@ ans.index = ans["tipo"]
 ans = ans.drop(["tipo"], axis = 1)
 ans["total"] = ans.sum(axis = 1)
 
-ans
+print(ans)
