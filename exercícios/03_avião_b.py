@@ -8,20 +8,21 @@ from deap import creator
 from deap import tools
 
 #%%
-# Cargas possíveis
+div = 10000
+
 cargas = [
-    ["Carga 1", 66000, 7.75, 0.82],
-    ["Carga 2", 55000, 10.60, 1.15],
-    ["Carga 3", 85000, 8.36, 0.92],
-    ["Carga 4", 40000, 6.30, 0.75]
+    ["Carga 1", 66000/div, 7.75/div, 0.82 * 1000/div],
+    ["Carga 2", 55000/div, 10.60/div, 1.15 * 1000/div],
+    ["Carga 3", 85000/div, 8.36/div, 0.92 * 1000/div],
+    ["Carga 4", 40000/div, 6.30/div, 0.75 * 1000/div]
     ]
 
-# Limites dos compartimentos
 compartimentos = [
     ["Dianteiro", 77500, 450],
     ["Central", 115000, 545],
     ["Traseiro", 57500, 305]
     ]
+
 
 #%%
 # Iniciador de nº de cada carga
