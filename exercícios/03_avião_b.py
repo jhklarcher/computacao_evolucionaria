@@ -26,7 +26,7 @@ compartimentos = [
 
 #%%
 def n_por_carga():
-    return random.choices( range(0, 10000), k = 12)
+    return random.choices(range(0, 10000), k = 12)
 
 #%%
 def evaluate(individual):
