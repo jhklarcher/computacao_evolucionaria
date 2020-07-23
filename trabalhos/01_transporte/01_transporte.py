@@ -19,7 +19,7 @@ vel_s_carga	=	75
 t_carga	=	2
 t_descarga	=	2
 tamanho_frota = 68
-cobertura_min = 72
+cobertura_min = 0.72
 t_max_viagem = 30 * 24
 
 t_viagem = np.ceil(t_carga + t_descarga + distancias.values/vel_c_carga + distancias.values/vel_s_carga)
