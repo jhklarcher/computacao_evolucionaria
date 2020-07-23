@@ -21,9 +21,13 @@ tamanho_frota = 68
 cobertura_min = 72
 t_max_viagem = 30 * 24
 
+t_viagem = np.ceil(t_carga + t_descarga + distancias.values/vel_c_carga + distancias.values/vel_s_carga)
 
 def n_caminhoes():
-  return random.choices(range(0, 68), k = 27)
+  vals = [random.randrange(68)]
+  for i in range(27):
+    vals.append(random.randrange(68 - sum(vals)))
+  return vals #random.choices(range(0, 68), k = 27)
 
 def evaluate(individual):
 
@@ -40,22 +44,19 @@ def evaluate(individual):
     [individual[24], 0, 0, individual[25], individual[26], 0, 0]
   ])
 
-  t_viagem_ind = t_carga + t_descarga + vel_c_carga * distancias.values + vel_s_carga * distancias.values
-  
-  n_viagens_ind = np.floor(t_max_viagem / t_viagem_ind)
-  veiculos_ind = n_viagens_ind * veiculos_carga
+  n_viagens = np.multiply(caminhoes.values, np.floor(t_max_viagem/t_viagem))
 
-  remuneracao_ind = np.sum( np.multiply(remuneracao.values, n_viagens_ind) )
-  custos_ind = np.sum( np.multiply(custos.values, n_viagens_ind) )
+  remuneracao_ind = np.sum( np.multiply(remuneracao.values, n_viagens) )
+  custos_ind = np.sum( np.multiply(custos.values, n_viagens) )
+  n_veiculos = n_viagens * veiculos_carga
+  total_caminhoes = np.sum(caminhoes.values)
 
-  if np.any(veiculos_ind > demanda.values):
-    penalidade = 0.4
+  if np.any(np.any(n_veiculos > demanda.values) or total_caminhoes > tamanho_frota):
+    penalidade = 1.0
 
   lucro = remuneracao_ind - custos_ind
 
-  return lucro * penalidade, 
-
-
+  return lucro * (1-penalidade), 
 
 #%%
 creator.create("Fitness", base.Fitness, weights=(1.0, ))
