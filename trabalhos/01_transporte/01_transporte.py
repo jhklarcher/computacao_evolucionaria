@@ -24,10 +24,10 @@ t_max_viagem = 30 * 24
 t_viagem = np.ceil(t_carga + t_descarga + distancias.values/vel_c_carga + distancias.values/vel_s_carga)
 
 def n_caminhoes():
-  vals = [random.randrange(68)]
-  for i in range(27):
-    vals.append(random.randrange(68 - sum(vals)))
-  return vals #random.choices(range(0, 68), k = 27)
+  # vals = [random.randrange(68)]
+  # for i in range(27):
+  #   vals.append(random.randrange(68 - sum(vals)))
+  return random.choices(range(1, (68-27)), k = 27)
 
 def evaluate(individual):
 
@@ -51,7 +51,9 @@ def evaluate(individual):
   n_veiculos = n_viagens * veiculos_carga
   total_caminhoes = np.sum(caminhoes.values)
 
-  if np.any(np.any(n_veiculos > demanda.values) or total_caminhoes > tamanho_frota):
+  cobertura = np.sum(n_veiculos) / np.sum(demanda.values) 
+
+  if np.any(np.any(n_veiculos > demanda.values) or (total_caminhoes > tamanho_frota) or (cobertura < cobertura_min)):
     penalidade = 1.0
 
   lucro = remuneracao_ind - custos_ind
@@ -74,7 +76,7 @@ toolbox.register("select", tools.selTournament, tournsize=3)
 
 #%%
 def main():
-    pop = toolbox.population(n=100)
+    pop = toolbox.population(n=500)
     
     # Evaluate the entire population
     fitnesses = list(map(toolbox.evaluate, pop))
@@ -94,7 +96,7 @@ def main():
     g = 0
     stats = []    
     # Begin the evolution
-    while g < 100:
+    while g < 500:
         # A new generation
         g = g + 1
         # print("-- Generation %i --" % g)
