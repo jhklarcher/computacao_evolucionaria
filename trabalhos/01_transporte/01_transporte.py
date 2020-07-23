@@ -1,3 +1,4 @@
+#%%
 import pandas as pd
 import numpy as np
 import random
@@ -96,7 +97,7 @@ def main():
     g = 0
     stats = []    
     # Begin the evolution
-    while g < 500:
+    while g < 1000:
         # A new generation
         g = g + 1
         # print("-- Generation %i --" % g)
@@ -176,3 +177,6 @@ caminhoes.to_csv("ans.csv")
 
 
 
+
+
+# %%
