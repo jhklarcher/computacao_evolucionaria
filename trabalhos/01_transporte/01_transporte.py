@@ -1,13 +1,13 @@
-#%%
+# %% Imports
 import pandas as pd
 import numpy as np
 import random
 from deap import base
 from deap import creator
 from deap import tools
-random.seed(42)
+random.seed(0)
 
-# Dados do problema
+# %% Dados do problema
 demanda = pd.read_csv('demanda.csv', index_col='origem').fillna(0)
 custos = pd.read_csv('custos.csv', index_col='origem').fillna(0)
 distancias = pd.read_csv('distancias.csv', index_col='origem').fillna(0)
@@ -20,21 +20,22 @@ t_carga	=	2
 t_descarga	=	2
 tamanho_frota = 68
 cobertura_min = 0.72
-t_max_viagem = 30 * 24
+t_max_viagem = 30*24
+t_viagem = t_carga + t_descarga + np.ceil(distancias.values/vel_c_carga) + np.ceil(distancias.values/vel_s_carga)
 
-t_viagem = np.ceil(t_carga + t_descarga + distancias.values/vel_c_carga + distancias.values/vel_s_carga)
+# %% Funções
 
+# Gera os números de caminhões 
 def n_caminhoes():
-  # vals = [random.randrange(68)]
-  # for i in range(27):
-  #   vals.append(random.randrange(68 - sum(vals)))
-  return random.choices(range(1, (68-27)), k = 27)
+  return np.random.randint(0, 6, size=27) # random.choices(range(0, 20), k=27)
 
+# Função objetivo / fitness
 def evaluate(individual):
 
-  penalidade = 1.0
+  penalidade = 0.0
 
   individual = individual[0]
+  
   caminhoes = pd.DataFrame([
     [0, individual[0], individual[1], individual[2], individual[3], individual[4], 0],
     [individual[5], individual[6], 0, individual[7], 0, individual[8], individual[9]],
@@ -45,17 +46,29 @@ def evaluate(individual):
     [individual[24], 0, 0, individual[25], individual[26], 0, 0]
   ])
 
-  n_viagens = np.multiply(caminhoes.values, np.floor(t_max_viagem/t_viagem))
+  n_viagens = caminhoes.values * np.floor(t_max_viagem/t_viagem)
+  n_veiculos =  (n_viagens * veiculos_carga)*(((n_viagens * veiculos_carga) <= demanda.values) * (demanda.values != 0)) + (demanda.values)*(((n_viagens * veiculos_carga) > demanda.values) * (demanda.values != 0))
+  n_viagens = np.floor(n_veiculos / veiculos_carga)
+  n_veiculos =  (n_viagens * veiculos_carga)
 
-  remuneracao_ind = np.sum( np.multiply(remuneracao.values, n_viagens) )
-  custos_ind = np.sum( np.multiply(custos.values, n_viagens) )
-  n_veiculos = n_viagens * veiculos_carga
+  remuneracao_ind = np.sum( remuneracao.values * n_viagens )
+  custos_ind = np.sum( custos.values * n_viagens )
+
   total_caminhoes = np.sum(caminhoes.values)
 
-  cobertura = np.sum(n_veiculos) / np.sum(demanda.values) 
+  cobertura = np.sum(n_veiculos) / np.sum(demanda.values)
 
-  if np.any(np.any(n_veiculos > demanda.values) or (total_caminhoes > tamanho_frota) or (cobertura < cobertura_min)):
-    penalidade = 1.0
+  # Penaliza se as colunas não atendem o critério
+  if np.any(np.sum(1*(caminhoes != 0), axis=0) < 2):
+      penalidade = 1
+
+  # Penaliza se a cobertura é menor que a mínima
+  if ((cobertura < cobertura_min)):
+    penalidade = 1 - cobertura
+
+  # Penaliza se o total de caminhões não é adequado
+  if ((total_caminhoes > tamanho_frota)):
+    penalidade = 0.6 # (total_caminhoes-tamanho_frota)/tamanho_frota * 1.5 + 0.2 #1
 
   lucro = remuneracao_ind - custos_ind
 
@@ -77,7 +90,7 @@ toolbox.register("select", tools.selTournament, tournsize=3)
 
 #%%
 def main():
-    pop = toolbox.population(n=500)
+    pop = toolbox.population(n=350)
     
     # Evaluate the entire population
     fitnesses = list(map(toolbox.evaluate, pop))
@@ -88,7 +101,7 @@ def main():
     #       are crossed
 
     # MUTPB is the probability for mutating an individual
-    CXPB, MUTPB = 0.5, 0.1
+    CXPB, MUTPB = 0.9, 0.1
     
     # Extracting all the fitnesses of 
     fits = [ind.fitness.values[0] for ind in pop]
@@ -97,7 +110,7 @@ def main():
     g = 0
     stats = []    
     # Begin the evolution
-    while g < 1000:
+    while g < 150:
         # A new generation
         g = g + 1
         # print("-- Generation %i --" % g)
@@ -135,7 +148,7 @@ def main():
         sum2 = sum(x*x for x in fits)
         std = abs(sum2 / length - mean**2)**0.5
         
-        stats.append([min(fits), max(fits), mean, std])
+        stats.append([min(fits), max(fits), mean])
     
     best = pop[np.argmax([toolbox.evaluate(x) for x in pop])]
     return best, stats
@@ -143,10 +156,9 @@ def main():
 
 #%%
 best_solution = main()
-print(evaluate(best_solution[0]))
-print(np.asmatrix(best_solution[0]))
 
 individual = best_solution[0][0]
+
 caminhoes = pd.DataFrame([
   [0, individual[0], individual[1], individual[2], individual[3], individual[4], 0],
   [individual[5], individual[6], 0, individual[7], 0, individual[8], individual[9]],
@@ -157,26 +169,4 @@ caminhoes = pd.DataFrame([
   [individual[24], 0, 0, individual[25], individual[26], 0, 0]
 ])
 
-print(caminhoes)
-
 caminhoes.to_csv("ans.csv")
-
-
-
-
-
-  
-
-
-  
-
-
-
-
-
-
-
-
-
-
-# %%
