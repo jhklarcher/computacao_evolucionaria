@@ -169,4 +169,6 @@ caminhoes = pd.DataFrame([
   [individual[24], 0, 0, individual[25], individual[26], 0, 0]
 ])
 
-caminhoes.to_csv("ans.csv")
+curva = pd.DataFrame(best_solution[1])
+curva.to_csv("curva.csv")
+caminhoes.to_csv("resposta.csv")
