@@ -1,20 +1,11 @@
-# To add a new cell, type '# %%'
-# To add a new markdown cell, type '# %% [markdown]'
-# %%
-from IPython import get_ipython
-
-# %% [markdown]
 # ## Problema de Otimização do Transporte
 # 
 # Aluno: José Henrique K. Larcher
 # 
 # Professor: Heitor Silvério Lopes
-# 
-# -------------------------------------
-# %% [markdown]
-# Imports e setups.
 
-# %%
+
+# Imports e setups.
 get_ipython().system('pip install deap')
 import pandas as pd
 import numpy as np
@@ -24,10 +15,7 @@ from deap import base, creator, tools, algorithms
 random.seed(0)
 np.random.seed(0)
 
-# %% [markdown]
 # Dados do problema.
-
-# %%
 demanda = pd.read_csv('demanda.csv', index_col='origem').fillna(0)
 custos = pd.read_csv('custos.csv', index_col='origem').fillna(0)
 distancias = pd.read_csv('distancias.csv', index_col='origem').fillna(0)
@@ -44,10 +32,8 @@ t_max_viagem = 30*24
 
 t_viagem = t_carga + t_descarga + np.ceil(distancias.values/vel_c_carga) + np.ceil(distancias.values/vel_s_carga)
 
-# %% [markdown]
-# Funções de geração aleatória e de fitness.
 
-# %%
+# Funções de geração aleatória e de fitness.
 def n_caminhoes():
   return np.random.randint(0, 8, size=1)[0] # random.choices(range(0, 20), k=27)
 
@@ -92,10 +78,8 @@ def evaluate(individual):
 
   return lucro * (1-penalidade), 
 
-# %% [markdown]
-# Propriedades do algoritmo genético.
 
-# %%
+# Propriedades do algoritmo genético.
 creator.create("Fitness", base.Fitness, weights=(1.0, ))
 creator.create("Individual", list, fitness=creator.Fitness)
 
@@ -117,37 +101,22 @@ stats.register("std", np.std)
 stats.register("min", np.min)
 stats.register("max", np.max)
 
-# %% [markdown]
 # Evolução.
-
-# %%
 pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.2, mutpb=0.1, ngen=60, stats=stats, halloffame=hof, verbose=True)
 
-# %% [markdown]
-# Fitnesse do melhor indivíduo.
-
-# %%
+# Fitness do melhor indivíduo.
 evaluate(hof.items[0])
 
-# %% [markdown]
 # Obtendo estatísticas da evolução.
-
-# %%
 att = []
 for l in log:
     att.append(l.values())
 att = pd.DataFrame(att, columns=log[0].keys())
 
-# %% [markdown]
 # Gráfico da evolução.
-
-# %%
 plt.plot(att.drop(["gen", "nevals", "std"], axis=1))
 
-# %% [markdown]
 # Exportando valores.
-
-# %%
 individual = hof.items[0]
 caminhoes = pd.DataFrame([
     [0, individual[0], individual[1], individual[2], individual[3], individual[4], 0],
@@ -159,8 +128,6 @@ caminhoes = pd.DataFrame([
     [individual[24], 0, 0, individual[25], individual[26], 0, 0]
   ])
 
-
-# %%
 caminhoes.to_csv("resposta.csv")
 att.to_csv("estatisticas.csv")
 

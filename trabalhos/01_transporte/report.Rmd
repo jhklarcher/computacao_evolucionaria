@@ -5,13 +5,13 @@ author:
 - 'Professor: Heitor Silvério Lopes'
 subtitle: Julho de 2020
 output:
-  html_notebook:
-    number_sections: true
-  html_document:
-    df_print: paged
   pdf_document:
     latex_engine: xelatex
     highlight: kate
+    number_sections: true
+  html_document:
+    df_print: paged
+  html_notebook:
     number_sections: true
 editor_options: 
   chunk_output_type: inline
@@ -139,3 +139,5 @@ data %>% ggplot(aes(x = gen, y = valor, col = medida)) +
   labs(x = "Gerações",
        y = "Fitness") 
 ```
+
+Notebook do programa: [https://nbviewer.jupyter.org/github/jhklarcher/computacao_evolucionaria/blob/master/trabalhos/01_transporte/programa_JoseLarcher.ipynb](https://nbviewer.jupyter.org/github/jhklarcher/computacao_evolucionaria/blob/master/trabalhos/01_transporte/programa_JoseLarcher.ipynb)
