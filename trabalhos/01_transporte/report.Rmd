@@ -1,0 +1,141 @@
+---
+title: 'Relatório de CE: Problema de Otimização do Transporte'
+author:
+- 'Aluno: José Henrique Kleinübing Larcher'
+- 'Professor: Heitor Silvério Lopes'
+subtitle: Julho de 2020
+output:
+  html_notebook:
+    number_sections: true
+  html_document:
+    df_print: paged
+  pdf_document:
+    latex_engine: xelatex
+    highlight: kate
+    number_sections: true
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggthemr)
+ggthemr('fresh')
+```
+
+# Natureza do problema
+
+Trata-se de um problema de otimização, onde o objetivo é maximixar o lucro, atendendo às restrições impostas pelo problema.
+
+# Conjunto de variáveis do problema e codificação
+
+As variáveis do problema são dadas conforme a matriz a seguir, onde as linhas indicam as origens de viagem e as colunas indicam o destino.
+
+$$ X=\begin{bmatrix} 0 & x_{ 1 } & x_{ 2 } & x_{ 3 } & x_{ 4 } & x_{ 5 } & 0 \\ x_{ 6 } & x_{ 7 } & 0 & x_{ 8 } & 0 & x_{ 9 } & x_{ 10 } \\ 0 & x_{ 11 } & 0 & 0 & x_{ 12 } & 0 & x_{ 13 } \\ x_{ 14 } & 0 & x_{ 15 } & 0 & x_{ 16 } & x_{ 17 } & 0 \\ 0 & x_{ 18 } & x_{ 19 } & 0 & 0 & 0 & x_{ 20 } \\ 0 & 0 & 0 & x_{ 21 } & x_{ 22 } & x_{ 23 } & x_{ 24 } \\ x_{ 25 } & 0 & 0 & x_{ 26 } & x_{ 27 } & 0 & 0 \end{bmatrix} $$
+
+Os valores de $x_i$ são o número de caminhões para uma determinada rota.
+
+A codificação utilizada foi de número inteiro para cada valor de $x_i$, ou seja o gene é um vetor $<x>$ com 27 posições.
+
+# Restrições do problema
+
+* O atendimento da demanda deve ser de no mínimo 72%.
+* Cada viagem deve levar exatamente 11 carros.
+* A velocidade do caminhão carregado é de 55 km/h.
+* A velocidade do caminhão sem carga é 75 km/h.
+* O tempo de carga e o tempo de descarga são de duas horas.
+* A frota disponível é de 68 caminhões.
+* O tempo máximo de viagem para cada caminhão é de 24 horas nos 30 dias do mês.
+
+## Matrizes do problema
+
+$D$: matriz de demanda (máxima);
+
+$d$: matriz de distânica entre as cidades;
+
+$C$: matriz de custo por viagem;
+
+$R$: matriz de remuneração por viagem.
+
+O tempo de viagem para cada localidad epode ser calculado então da seguinte forma:
+
+$$ t_{ \text{ viagem } }=t_{ \text{ carga } }+t_{ \text{ descarga } }+\text{ceil}\left( \frac { d }{ v_{ \text{ com carga } } }  \right) + \text{ceil} \left( \frac { d }{ v_{ \text{ sem carga } } }  \right)   $$
+
+Onde $\text{ceil}(x)$ representa o arredondamento para cima de $x$. Os valores individuais para cada trajeto são chamados de $T$ (uma matriz).
+
+## Funções de restrição
+
+$$
+h_1 = \text{max} \left( 0, \frac{\text{cobertura}_\text{min} - \text{cobertura}}{\text{cobertura}_\text{min}} \right)
+$$
+
+$$
+h_2=\text{max} \left( 0,\frac{\text{total}\_\text{caminhoes}-\text{frota}_\text{max}} {\text{frota}_\text{max}} \right)
+$$
+
+
+$$h_3= \text{max}\{0, \text{any}(\text{sum}(\text{sum}((\text{caminhoes} \ne 0) ) < 2)) \}$$
+
+(deixado conforme usado no programa, retorna 1 caso pelo menos dois destinos sejam atendidos e 0 caso contrário).
+
+
+# Função objetivo e função de fitness
+
+A função objetivo utilizada é a que representa o lucro ($L$) com o número de caminhões ($X$). O número de viagens $V$ será:
+
+$$ V(X) = X \odot \text{floor} \left( \frac {t_{\text{max viagem}}}{T} \right) $$
+
+Onde `floor` é o arredondamento para baixo e $\odot$ é a multiplicação elemento a elemento.
+
+O lucro $L$ é então a função objetivo:
+
+$$ L(X) = \text{sum}\{R \odot V(X)\} - \text{sum}\{C \odot V(X)\}  $$
+
+Onde `sum` é a soma de todos os elementos da matriz.
+
+Assim a função de fitness será:
+
+$$\text{fit}(X) = L(X) - \frac{1}{3}\sum_{i=1}^{3}h_i$$
+
+
+# Solução ótima
+
+## Parâmetros
+
+| Propriedade        | Valor                   |
+|--------------------|-------------------------|
+| Crossover          | two-point crossover     |
+| Mutação            | ShuffleIndexes          |
+| Seleção            | Torneio de 3 indivíduos |
+| População          | 1.000                   |
+| Gerações           | 60                      |
+| Prob. de Crossover | 0.2 (20%)               |
+| Prob. de Mutação   | 0.1 (20%)               |
+
+## Resultado
+
+$$ X=\begin{bmatrix} 
+0 & 4 & 0 & 3 & 3 & 5 & 0 \\
+5 & 4 & 0 & 2 & 0 & 2 & 1 \\
+0 & 3 & 0 & 0 & 1 & 0 & 2 \\
+7 & 0 & 4 & 0 & 5 & 3 & 0 \\
+0 & 5 & 0 & 0 & 0 & 0 & 1 \\
+0 & 0 & 0 & 1 & 1 & 2 & 1 \\
+1 & 0 & 0 & 1 & 1 & 0 & 0
+\end{bmatrix} $$
+
+$$ \text{fit}(X) = 11.027.453,00  $$
+
+## Gráfico da evolução
+
+```{r, echo=FALSE, results="hide", warning=FALSE, message=FALSE, fig.height = 3, fig.width = 5, fig.align = "center"}
+
+data <- read_csv("estatisticas.csv") %>%
+  gather("medida", "valor", avg, max, min)
+
+data %>% ggplot(aes(x = gen, y = valor, col = medida)) +
+  geom_line(size=0.9) +
+  labs(x = "Gerações",
+       y = "Fitness") 
+```
