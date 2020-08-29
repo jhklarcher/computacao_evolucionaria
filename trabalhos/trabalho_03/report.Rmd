@@ -1,0 +1,142 @@
+---
+title: 'Relatório de CE: Problema do Caixeiro Viajante com ACO'
+author:
+- 'Aluno: José Henrique Kleinübing Larcher'
+- 'Professor: Heitor Silvério Lopes'
+subtitle: Agosto de 2020
+output:
+  pdf_document:
+    latex_engine: xelatex
+    number_sections: true
+    highlight: kate
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggthemr)
+library(knitr)
+library(ggmap)
+library(tmap)
+ggthemr('fresh')
+```
+
+# Parâmetros do problema
+
+
+Foram escolhidos os seguintes parâmetros para avaliar o problema:
+
+| Parâmetro | Valores        |
+|:---------:|:--------------:|
+| $\alpha$  | 0.5, 1, 1.5, 2 |
+| $\beta$   | 1, 1.5, 2, 3   |
+| $\rho$    | 0.25, 0.5, 1   |
+
+Para cada conjunto de parâmetros o experimento foi rodado dez vezes, totalizando 480 experimentos / rodadas.
+
+# Melhores soluções
+
+As soluções da melhor para a pior, com base na média são as seguintes:
+
+| alpha| beta|  rho| runs|  Média  | Melhor|
+|:----:|:---:|:---:|:---:|:-------:|:-----:|
+|   1.5|  1.0| 1.00|   10| 150437.4| 150246|
+|   1.0|  1.0| 1.00|   10| 150498.3| 150204|
+|   1.0|  1.5| 1.00|   10| 150505.7| 150308|
+|   1.0|  3.0| 1.00|   10| 150556.4| 150376|
+|   1.5|  2.0| 1.00|   10| 150622.3| 150420|
+|   1.0|  2.0| 1.00|   10| 150655.9| 150402|
+|   1.5|  3.0| 1.00|   10| 150675.7| 150420|
+|   1.5|  1.5| 1.00|   10| 150780.2| 150240|
+|   1.5|  2.0| 0.50|   10| 151188.1| 150982|
+|   1.5|  1.0| 0.50|   10| 151260.0| 150909|
+|   1.5|  3.0| 0.50|   10| 151270.9| 150794|
+|   1.5|  1.5| 0.50|   10| 151273.7| 150996|
+|   1.0|  3.0| 0.50|   10| 151314.4| 151043|
+|   0.5|  3.0| 1.00|   10| 151330.2| 151011|
+|   0.5|  2.0| 1.00|   10| 151626.4| 151451|
+|   1.0|  2.0| 0.50|   10| 151696.1| 151093|
+|   0.5|  1.5| 1.00|   10| 151744.3| 151640|
+|   1.0|  1.5| 0.50|   10| 151774.3| 151488|
+|   0.5|  1.0| 1.00|   10| 151817.6| 151523|
+|   1.0|  1.0| 0.50|   10| 151886.9| 151693|
+|   2.0|  1.0| 0.25|   10| 152179.9| 151789|
+|   1.5|  1.5| 0.25|   10| 152226.1| 151889|
+|   1.0|  3.0| 0.25|   10| 152274.9| 151941|
+|   0.5|  3.0| 0.50|   10| 152287.3| 152042|
+|   1.5|  2.0| 0.25|   10| 152443.6| 151850|
+|   1.5|  1.0| 0.25|   10| 152477.0| 152214|
+|   1.5|  3.0| 0.25|   10| 152478.8| 152092|
+|   1.0|  2.0| 0.25|   10| 152567.5| 152139|
+|   0.5|  2.0| 0.50|   10| 152577.8| 152368|
+|   0.5|  1.5| 0.50|   10| 152612.7| 151897|
+|   0.5|  3.0| 0.25|   10| 152726.3| 152386|
+|   1.0|  1.0| 0.25|   10| 152751.1| 152395|
+|   0.5|  1.0| 0.50|   10| 152773.9| 152443|
+|   1.0|  1.5| 0.25|   10| 152793.9| 152609|
+|   0.5|  2.0| 0.25|   10| 152866.0| 152615|
+|   0.5|  1.0| 0.25|   10| 152900.1| 152647|
+|   0.5|  1.5| 0.25|   10| 152990.8| 152714|
+
+
+
+
+A melhor solução encontrada em média foi encontrada com os parâmetros:
+
+| Parâmetro |     Valores    |
+|:---------:|:--------------:|
+| $\alpha$  |       1.5      |
+| $\beta$   |       1.0      |
+| $\rho$    |       1.0      |
+
+Já a melhor solução como um todo foi encontrada na quinta rodada com os parâmetros:
+
+| Parâmetro |     Valores    |
+|:---------:|:--------------:|
+| $\alpha$  |       2.0      |
+| $\beta$   |       3.0      |
+| $\rho$    |       1.0      |
+
+Isso acontece pois cada rodada tem uma semente aleatória diferente e por tanto trás resultados diferentes. Devido à componente aleatória do algoritmo a melhor solução não foi encontrada no melhor conjunto de parâmetros em média.
+
+# Percurso
+
+O percurso do melhor resultado se encontra no arquivo `percurso.txt`. Para visualizar de forma qualitativa, o percurso foi plotado a seguir.
+
+```{r, echo=FALSE, results="hide", warning=FALSE, message=FALSE, fig.height = 5, fig.width = 5, fig.align = "center"}
+
+br <- brazilmaps::get_brmap(geo = "State", class = "sf") %>%
+  fortify()
+
+df2 <- read_delim("percurso.txt", delim = " ", col_names = c("num", "lat", "long")) %>%
+  mutate(lat_lag = lag(lat, n = 1L), long_lag = lag(long, n = 1L))
+  
+
+br %>%
+  ggplot() +
+  geom_sf() +
+  geom_path(data = df2, aes(x=long_lag, y=lat_lag)) +
+  xlab("Longitude") +
+  ylab("Latitude")
+
+```
+
+
+
+# Efeito de alfa, beta e rho na qualidade das soluções
+
+A influência de $\alpha$, $\beta$ e $\rho$ nas soluções pode ser observada no gráfico a seguir. Valores maiores de $rho$ tiveram um tendência a trazer melhores resultados. Não existe uma influência clara das outras variáveis de forma separada.
+
+```{r, echo=FALSE, results="hide", warning=FALSE, message=FALSE, fig.height = 3, fig.width = 5, fig.align = "center"}
+
+df <- read_csv("medias.csv")
+
+df %>%
+  select(-melhor, -runs) %>%
+  gather(key, value, -media) %>%
+  arrange(desc(media)) %>%
+  ggplot(aes(x=media, y=value, col=key)) +
+  geom_line(size=0.5)
+```
